@@ -4,13 +4,12 @@
 
 [![Python Version](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![HuggingFace](https://img.shields.io/badge/🤗-Model%20on%20Hub-yellow)](https://huggingface.co/sant1x/uzbek-sentiment-xlm-roberta)
-[![XLM-RoBERTa](https://img.shields.io/badge/model-xlm--roberta--base-orange)](https://huggingface.co/xlm-roberta-base)
+[![HuggingFace](https://img.shields.io/badge/🤗-Models%20on%20Hub-yellow)](https://huggingface.co/sant1x)
 [![Status](https://img.shields.io/badge/status-complete-success.svg)]()
 
-**Fine-tuned XLM-RoBERTa for binary sentiment classification of Uzbek-language text**
+**A benchmark study of 4 NLP models for binary sentiment classification of Uzbek-language text**
 
-[Overview](#-overview) • [Results](#-results) • [Dataset](#-dataset) • [Usage](#-usage) • [Reproduce](#-reproduce-training) • [Limitations](#-limitations)
+[Overview](#-overview) • [Results](#-results) • [Dataset](#-dataset) • [Models](#-models) • [Usage](#-usage) • [Reproduce](#-reproduce-training) • [Limitations](#-limitations)
 
 </div>
 
@@ -18,27 +17,33 @@
 
 ## 🎯 Overview
 
-Uzbek is a low-resource language with very limited NLP tooling. This project fine-tunes `xlm-roberta-base` — a multilingual transformer trained on 100 languages — on a self-collected dataset of Uzbek product reviews to perform binary sentiment classification (positive / negative).
+Uzbek is a low-resource language with very limited NLP tooling. This project benchmarks 4 models — ranging from a classical TF-IDF baseline to fine-tuned multilingual transformers — on a self-collected dataset of Uzbek product reviews for binary sentiment classification (positive / negative).
 
-The model and dataset are both open-source, contributing a reusable resource for Uzbek NLP research.
+All models, the dataset, and training code are open-source, contributing reusable resources for Uzbek NLP research.
 
-**🤗 Model available on HuggingFace**: [sant1x/uzbek-sentiment-xlm-roberta](https://huggingface.co/sant1x/uzbek-sentiment-xlm-roberta)
+**🤗 Models on HuggingFace:**
+- [sant1x/uzbek-sentiment-xlm-roberta](https://huggingface.co/sant1x/uzbek-sentiment-xlm-roberta)
+- [sant1x/uzbek-sentiment-mbert](https://huggingface.co/sant1x/uzbek-sentiment-mbert)
+- [sant1x/uzbek-sentiment-distilbert](https://huggingface.co/sant1x/uzbek-sentiment-distilbert)
 
 ---
 
 ## 📊 Results
 
-Evaluated on a held-out test set of 118 examples:
+All models evaluated on the same held-out test set of 118 examples:
 
-| Class | Precision | Recall | F1-Score | Support |
-|-------|-----------|--------|----------|---------|
-| Negative | 0.7586 | 0.8800 | 0.8148 | 25 |
-| Positive | 0.9663 | 0.9247 | 0.9451 | 93 |
-| **Weighted avg** | **0.9223** | **0.9153** | **0.9175** | **118** |
+| Model | Accuracy | Weighted F1 | Neg F1 | Pos F1 |
+|-------|----------|-------------|--------|--------|
+| **TF-IDF + Logistic Regression** | **0.9576** | **0.9566** | **0.8936** | **0.9735** |
+| mBERT | 0.9492 | 0.9492 | 0.8800 | 0.9677 |
+| DistilBERT multilingual | 0.9407 | 0.9411 | 0.8627 | 0.9622 |
+| XLM-RoBERTa | 0.9153 | 0.9175 | 0.8148 | 0.9451 |
 
-**Test Accuracy: 91.53% | Weighted F1: 91.75%**
+### Discussion
 
-### Training Progress
+The TF-IDF + Logistic Regression baseline outperformed all transformer models — a result consistent with findings in low-resource NLP literature. With only 1,172 training examples, transformers do not have enough data to fully leverage their pretraining, while TF-IDF benefits from the relatively predictable vocabulary of e-commerce reviews. This suggests that for production use on similarly small Uzbek datasets, classical methods remain competitive. Transformer models would likely surpass the baseline with a larger, more diverse dataset.
+
+### XLM-RoBERTa Training Progress
 
 | Epoch | Val Accuracy | Val F1 | Val Loss |
 |-------|-------------|--------|----------|
@@ -59,22 +64,20 @@ Evaluated on a held-out test set of 118 examples:
 | **Labeling method** | Distant supervision via star ratings |
 | **Splits** | 80% train / 10% val / 10% test (stratified) |
 
-Reviews were scraped manually and labeled using distant supervision — 5-star ratings mapped to positive, 1-star to negative. A sample of 100 examples was manually verified for label quality.
-
-3-star and 4-star reviews were excluded to keep class boundaries clean for binary classification.
+Reviews were collected manually and labeled using distant supervision — 5-star ratings mapped to positive, 1-star to negative. A sample of 100 examples was manually verified for label quality. 2, 3, and 4-star reviews were excluded to keep class boundaries clean.
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Models
 
-| Category | Details |
-|----------|---------|
-| **Base Model** | xlm-roberta-base |
-| **Framework** | HuggingFace Transformers + Trainer API |
-| **Language** | Python 3.10+ |
-| **Key Libraries** | `transformers`, `datasets`, `evaluate`, `scikit-learn`, `torch` |
-| **Hardware** | Google Colab T4 GPU |
-| **Training Time** | ~3.5 minutes (3 epochs) |
+| Model | Size | HuggingFace |
+|-------|------|-------------|
+| TF-IDF + Logistic Regression | — | N/A (sklearn) |
+| mBERT (`bert-base-multilingual-cased`) | 714MB | [sant1x/uzbek-sentiment-mbert](https://huggingface.co/sant1x/uzbek-sentiment-mbert) |
+| DistilBERT multilingual | 542MB | [sant1x/uzbek-sentiment-distilbert](https://huggingface.co/sant1x/uzbek-sentiment-distilbert) |
+| XLM-RoBERTa (`xlm-roberta-base`) | 1.12GB | [sant1x/uzbek-sentiment-xlm-roberta](https://huggingface.co/sant1x/uzbek-sentiment-xlm-roberta) |
+
+**Tech stack:** Python 3.10+, HuggingFace Transformers + Trainer API, scikit-learn, Google Colab T4 GPU
 
 ---
 
@@ -87,7 +90,7 @@ from transformers import pipeline
 
 classifier = pipeline(
     "text-classification",
-    model="sant1x/uzbek-sentiment-xlm-roberta"
+    model="sant1x/uzbek-sentiment-xlm-roberta"  # or mbert / distilbert variant
 )
 
 # Positive example
@@ -140,11 +143,15 @@ Place `train.csv`, `val.csv`, and `test.csv` in the root directory. Each file sh
 
 ### 4. Run training
 
+To train only XLM-RoBERTa:
 ```bash
 python train_xlm_roberta.py
 ```
 
-The fine-tuned model will be saved to `./uzbek-sentiment-model`.
+To run the full 4-model benchmark:
+```bash
+python compare_models.py
+```
 
 > **Note**: Training was done on Google Colab with a T4 GPU. A GPU is strongly recommended — CPU training will be significantly slower.
 
@@ -152,11 +159,11 @@ The fine-tuned model will be saved to `./uzbek-sentiment-model`.
 
 ## ⚠️ Limitations
 
-- **Domain**: Trained on e-commerce reviews only. May not generalize well to social media, news, or formal text.
-- **Class imbalance**: Negative examples are underrepresented (~20% of data), which affects negative class recall despite class-weighted loss.
-- **Code-switching**: Uzbek speakers often mix Russian into their writing. The model was not explicitly trained to handle this.
+- **Domain**: Trained on e-commerce reviews only. May not generalize to social media, news, or formal text.
+- **Class imbalance**: Negative examples are underrepresented (~20% of data), affecting negative class performance despite class-weighted loss.
+- **Dataset size**: 1,172 examples is small — a larger dataset would likely allow transformers to outperform the TF-IDF baseline.
+- **Code-switching**: Uzbek speakers often mix Russian into writing; the models were not explicitly trained to handle this.
 - **Dialects**: No coverage of regional Uzbek dialect variation.
-- **Dataset size**: 1,172 examples is small by NLP standards. A larger dataset would improve robustness.
 
 ---
 
@@ -180,4 +187,4 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 - **HuggingFace** — for the Transformers library and model hosting
 - **Uzum Market** — as the source of publicly available review data
-- The broader **multilingual NLP research community** for making xlm-roberta-base openly available
+- The broader **multilingual NLP research community** for making xlm-roberta-base, mBERT, and DistilBERT openly available
